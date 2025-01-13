@@ -1,0 +1,19 @@
+﻿body {
+}
+
+.led-matrix {
+    table-layout: fixed;
+    text-align: center;
+    line-height: 20px;
+}
+
+    .led-matrix th {
+        width: 20px;
+        height: 20px;
+    }
+
+    .led-matrix td {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+    }

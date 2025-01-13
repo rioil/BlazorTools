@@ -1,0 +1,110 @@
+﻿@page "/led-matrix-editor"
+@using System.Text
+
+<PageTitle>Home</PageTitle>
+
+<h1>LED Matrix Editor</h1>
+
+<InputNumber @bind-Value="Width" />
+<InputNumber @bind-Value="Height" />
+
+<div>
+    <table class="led-matrix">
+        <thead>
+            <tr>
+                <th></th>
+                @for (int column = 0; column < Width; column++)
+                {
+                    <th>@(column + 1)</th>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @for (int i = 0; i < Height; i++)
+            {
+                var row = i;
+                <tr>
+                    <th>@(row + 1)</th>
+                    @for (int j = 0; j < Width; j++)
+                    {
+                        var column = j;
+                        <td>
+                            @* onclickの引数にはローカル変数を使用して，正しい値をキャプチャさせる *@
+                            <svg width="16" height="16"
+                                 @onclick="(() => OnLedClick(row, column))"
+                                 @onmouseover="e => OnLedMouseOver(e, row, column)">
+                                <circle cx="8" cy="8" r="7" fill="@(LedMatrix[row, column] ? "red" : "gray")" />
+                            </svg>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <button @onclick="Export">Export</button>
+    <InputTextArea @bind-Value="ExportedData" rows="@Height"/>
+</div>
+
+@code {
+    private int Width { get; set; } = 32;
+    private int Height { get; set; } = 16;
+    private string ExportedData { get; set; } = string.Empty;
+
+    private bool[,] LedMatrix { get; set; } = new bool[16, 32];
+
+    private void OnLedClick(int row, int column)
+    {
+        ToggleLed(row, column);
+    }
+
+    private void OnLedMouseOver(MouseEventArgs e, int row, int column)
+    {
+        
+        const int MouseLeftButton = 1;
+        const int MouseRightButton = 2;
+
+        switch (e.Buttons)
+        {
+            case MouseLeftButton:
+                SetLed(row, column, !e.ShiftKey);
+                break;
+            case MouseRightButton:
+                SetLed(row, column, false);
+                break;
+        }
+    }
+
+    private void ToggleLed(int row, int column)
+    {
+        LedMatrix[row, column] = !LedMatrix[row, column];
+    }
+
+    private void SetLed(int row, int column, bool state)
+    {
+        LedMatrix[row, column] = state;
+    }
+
+    private void Export()
+    {
+        var rowCount = LedMatrix.GetLength(0);
+        var columnCount = LedMatrix.GetLength(1);
+        var builder = new StringBuilder((3 * (columnCount + 1) + 2) * rowCount);
+
+        for (int row = 0; row < rowCount; row++)
+        {
+            builder.Append("{ ");
+            for (int column = 0; column < columnCount; column++)
+            {
+                builder.AppendFormat("{0}, ", LedMatrix[row, column] ? '1' : '0');
+            }
+            builder.Length -= 2;
+            builder.AppendLine(" },");
+        }
+
+        ExportedData = builder.ToString();
+    }
+}
